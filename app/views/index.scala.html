@@ -1,0 +1,19 @@
+@(result: String, expression: String = "", calculateForm: Form[String])
+
+@import helper._
+
+@main("Simple Calculator") {
+    <h1>Simple Calculator</h1>
+
+    @if(!result.isEmpty) {
+        <div class="result">
+            <div class="question">Question: @expression</div>
+            <div class="answer">Answer: @result</div>
+        </div>
+    }
+
+    @form(routes.Application.calculate) {
+        @inputText(calculateForm("expression"))
+        <input type="submit" value="Calculate" />
+    }
+}
