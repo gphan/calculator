@@ -7,6 +7,7 @@ GET     /                           controllers.Application.index
 
 # Calculate
 POST    /calculate                  controllers.Application.calculate
+POST    /calculate.json             controllers.Application.calculateJson
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)

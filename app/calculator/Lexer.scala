@@ -2,13 +2,13 @@ package calculator
 
 class ParseException(message: String) extends Exception(message)
 
-object Tokens {
-  sealed abstract trait Token
-  case object LeftParen extends Token
-  case object RightParen extends Token
-  case class Operator(operator: Char) extends Token
-  case class Number(value: String) extends Token
-  case class Identifier(name: String) extends Token
+object Token {
+  sealed trait Token
+  case object LeftParenthesisToken extends Token
+  case object RightParenthesisToken extends Token
+  case class OperatorToken(operator: Char) extends Token
+  case class NumberToken(value: String) extends Token
+  case class IdentifierToken(name: String) extends Token
 }
 
 private object TokenStream {
@@ -22,7 +22,7 @@ class TokenStream(input: String) {
 
   skipWhitespace()
 
-  private def skipWhitespace() {
+  def skipWhitespace() {
     while (currentChar < input.length && input(currentChar) == ' ') { currentChar += 1 }
   }
 
@@ -39,7 +39,6 @@ class TokenStream(input: String) {
 
     val next = input(currentChar)
     currentChar += 1
-    skipWhitespace()
     next
   }
 }
@@ -49,7 +48,7 @@ object Lexer {
 }
 
 class Lexer(input: String) {
-  import Tokens._
+  import Token._
   import scala.collection.mutable.Stack
 
   private val tokenStream = new TokenStream(input)
@@ -59,7 +58,7 @@ class Lexer(input: String) {
 
   def toTokenSeq = tokenStack.toSeq.reverse
 
-  private def number: Boolean = {
+  private def number(): Boolean = {
     val sb = new StringBuilder
     if (tokenStream.peek == '-') {
       sb += tokenStream.take()
@@ -70,78 +69,80 @@ class Lexer(input: String) {
         sb += tokenStream.take()
       }
 
-      tokenStack.push(Number(sb.toString))
+      tokenStack.push(NumberToken(sb.toString))
       return true
     }
 
     false
   }
 
-  private def identifier: Boolean = {
+  private def identifier(): Boolean = {
     if (Character.isLetter(tokenStream.peek)) {
       val sb = new StringBuilder
       while (Character.isLetter(tokenStream.peek)) {
         sb += tokenStream.take()
       }
 
-      tokenStack.push(Identifier(sb.toString))
+      tokenStack.push(IdentifierToken(sb.toString))
       return true
     }
     false
   }
 
-  private def operator: Boolean = {
+  private def operator(): Boolean = {
     if (Lexer.OperatorsSet(tokenStream.peek)) {
       val token = tokenStream.take()
-      tokenStack.push(Operator(token))
+      tokenStack.push(OperatorToken(token))
       return true
     }
     false
   }
 
-  private def operand: Boolean = {
-    if (identifier || number) {
+  private def operand(): Boolean = {
+    if (identifier() || number()) {
       return true
     }
 
     false
   }
 
-  private def expression: Boolean = {
+  private def expression(): Boolean = {
     if (tokenStream.peek == '(') {
       tokenStream.take()
-      tokenStack.push(LeftParen)
+      tokenStack.push(LeftParenthesisToken)
 
-      expression
+      expression()
 
       if (tokenStream.take() != ')')
         throw new ParseException("Expecting an end parenthesis")
 
-      tokenStack.push(RightParen)
-      return exprRest
+      tokenStack.push(RightParenthesisToken)
+      return exprRest()
     }
 
-    if (operand) {
-      return exprRest
+    if (operand()) {
+      tokenStream.skipWhitespace()
+      return exprRest()
     }
 
     throw new ParseException("Expecting another expression, either paren or operand.")
   }
 
-  private def exprRest: Boolean = {
-    if (operator) {
-      expression
+  private def exprRest(): Boolean = {
+    if (operator()) {
+      tokenStream.skipWhitespace();
+      expression()
     }
 
     if (tokenStream.peek == TokenStream.EOF) {
       return true
     }
 
-    false
+    throw new ParseException("Expecting a valid operator or EOF")
   }
 
   private def isValid: Boolean =  {
-    expression
+    expression()
   }
 }
 

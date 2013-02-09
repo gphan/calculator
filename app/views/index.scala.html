@@ -1,4 +1,4 @@
-@(result: String, expression: String = "", calculateForm: Form[String])
+@(result: String = "", expression: String = "", calculateForm: Form[String])
 
 @import helper._
 
@@ -12,8 +12,9 @@
         </div>
     }
 
-    @form(routes.Application.calculate) {
-        @inputText(calculateForm("expression"))
-        <input type="submit" value="Calculate" />
+    @form(routes.Application.calculate, args = 'id -> "calculate-form") {
+        @inputText(calculateForm("expression"), args = 'size -> 30, 'class -> "expression",
+            'placeholder -> "expression")
+        <input id="submit" type="submit" value="Calculate" />
     }
 }

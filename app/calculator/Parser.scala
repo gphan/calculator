@@ -1,10 +1,9 @@
 package calculator
 
-package Operators {
+object Operators {
   sealed abstract class Op(val priority: Int) extends Ordered[Op] {
     def compare(that: Op) = this.priority compare that.priority
   }
-
   case object Multiply extends Op(4)
   case object Divide extends Op(3)
   case object Add extends Op(2)
@@ -13,23 +12,23 @@ package Operators {
   case object RightParen extends Op(0)
 }
 
-package Ast {
+object Ast {
 import calculator.Operators._
-sealed abstract trait AstNode
-case class BinaryNode(left: AstNode, right: AstNode, operator: Op) extends AstNode
-case class NumberNode(value: Int) extends AstNode
-case class IdentifierNode(name: String) extends AstNode
+sealed abstract trait Node
+case class BinaryNode(left: Node, right: Node, operator: Op) extends Node
+case class NumberNode(value: Int) extends Node
+case class IdentifierNode(name: String) extends Node
 }
 
-object Parse {
+object Parser {
   import Operators._
   import Ast._
-  import Tokens._
+  import Token._
   import scala.collection.mutable.Stack
 
-  def parse(tokens: Seq[Token]): AstNode = {
+  def parse(tokens: Seq[Token]): Node = {
     val opStack = new Stack[Op]
-    val outputQueue = new Stack[AstNode]
+    val outputQueue = new Stack[Node]
 
     /**
      * Creates a binary node from two nodes in the queue.
@@ -55,18 +54,18 @@ object Parse {
       opStack.push(op)
     }
 
-    import Tokens._
+    import Token._
     def processToken(token: Token): Unit = token match {
-      case Number(value) => outputQueue.push(NumberNode(value.toInt))
-      case Identifier(name) => outputQueue.push(IdentifierNode(name))
-      case Operator(op) => op match {
+      case NumberToken(value) => outputQueue.push(NumberNode(value.toInt))
+      case IdentifierToken(name) => outputQueue.push(IdentifierNode(name))
+      case OperatorToken(op) => op match {
         case '*' => pushToOpStack(Multiply)
         case '/' => pushToOpStack(Divide)
         case '+' => pushToOpStack(Add)
         case '-' => pushToOpStack(Subtract)
       }
-      case LeftParen => opStack.push(Operators.LeftParen)
-      case RightParen => {
+      case LeftParenthesisToken => opStack.push(Operators.LeftParen)
+      case RightParenthesisToken => {
         while (opStack.top != Operators.LeftParen) {
           val operator = opStack.pop()
           pushBinaryNode(operator)
@@ -86,7 +85,7 @@ object Parse {
       }
     }
 
-    assert(outputQueue.size == 1, "We should only have one AstNode in the output queue")
+    assert(outputQueue.size == 1, "We should only have one Node in the output queue")
     outputQueue.pop()
   }
 }
