@@ -54,7 +54,8 @@ class Lexer(input: String) {
   private val tokenStream = new TokenStream(input)
   private val tokenStack = new Stack[Token]
 
-  isValid
+  // Run the expression to validate it
+  expression()
 
   def toTokenSeq = tokenStack.toSeq.reverse
 
@@ -107,6 +108,7 @@ class Lexer(input: String) {
   }
 
   private def expression(): Boolean = {
+    tokenStream.skipWhitespace()
     if (tokenStream.peek == '(') {
       tokenStream.take()
       tokenStack.push(LeftParenthesisToken)
@@ -121,28 +123,27 @@ class Lexer(input: String) {
     }
 
     if (operand()) {
-      tokenStream.skipWhitespace()
       return exprRest()
     }
 
-    throw new ParseException("Expecting another expression, either paren or operand.")
+    throw new ParseException("Expecting another expression, either parenthesis or operand.")
   }
 
   private def exprRest(): Boolean = {
+    tokenStream.skipWhitespace()
     if (operator()) {
-      tokenStream.skipWhitespace();
-      expression()
+      return expression()
     }
 
     if (tokenStream.peek == TokenStream.EOF) {
       return true
     }
 
-    throw new ParseException("Expecting a valid operator or EOF")
-  }
+    if (operand()) {
+      throw new ParseException("Unexpected operand")
+    }
 
-  private def isValid: Boolean =  {
-    expression()
+    return false
   }
 }
 
