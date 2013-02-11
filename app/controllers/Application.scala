@@ -36,17 +36,8 @@ object Application extends Controller {
   }
 
   private def calculateResult(expression: String): String = {
-    import calculator._
-
-    try {
-      val lexer = new Lexer(expression)
-      val tokens = lexer.toTokenSeq
-      val root = Parser.parse(tokens)
-      val result = Evaluator.evaluate(root)
-      result.toString
-    } catch {
-      case e => e.getMessage
-    }
+    import calculator.Evaluator
+    Evaluator(expression)
   }
 
 }

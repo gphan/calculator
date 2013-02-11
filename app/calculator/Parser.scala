@@ -26,6 +26,8 @@ object Parser {
   import Token._
   import scala.collection.mutable.Stack
 
+  def apply(tokens: Seq[Token]) = parse(tokens)
+
   def parse(tokens: Seq[Token]): Node = {
     val opStack = new Stack[Op]
     val outputQueue = new Stack[Node]

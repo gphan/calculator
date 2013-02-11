@@ -18,7 +18,7 @@ private object TokenStream {
 class TokenStream(input: String) {
   import TokenStream.EOF
 
-  var currentChar:Int = 0
+  var currentChar = 0
 
   skipWhitespace()
 
@@ -45,6 +45,8 @@ class TokenStream(input: String) {
 
 object Lexer {
   val OperatorsSet = Set('+', '-', '*', '/')
+
+  def apply(input: String) = new Lexer(input)
 }
 
 class Lexer(input: String) {
